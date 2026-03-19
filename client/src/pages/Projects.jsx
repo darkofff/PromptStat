@@ -10,40 +10,40 @@ const MOCK_PROJECTS = [
 ];
 
 const STATUS_STYLES = {
-  Active: "bg-green-900/50 text-green-400",
-  Completed: "bg-blue-900/50 text-blue-400",
-  Paused: "bg-yellow-900/50 text-yellow-400",
+  Active: "bg-success/10 text-success",
+  Completed: "bg-info/10 text-info",
+  Paused: "bg-warning/10 text-warning",
 };
 
 function Projects() {
   const [selectedId, setSelectedId] = useState(null);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-8">
+    <div className="flex-1 overflow-y-auto bg-base px-4 py-8">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-6 text-2xl font-bold text-white">Projects</h1>
+        <h1 className="mb-6 text-2xl font-bold text-heading">Projects</h1>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <button
-            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-700 p-5 transition hover:border-indigo-500 hover:bg-gray-800/50">
-            <span className="mb-2 text-3xl text-gray-500">+</span>
-            <span className="text-sm font-medium text-gray-400">New Project</span>
+            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-5 transition hover:border-accent-hover hover:bg-elevated/50">
+            <span className="mb-2 text-3xl text-muted">+</span>
+            <span className="text-sm font-medium text-subtle">New Project</span>
           </button>
           {MOCK_PROJECTS.map((project) => (
             <button
               key={project.id}
               onClick={() => setSelectedId(project.id)}
-              className={`cursor-pointer rounded-xl border p-5 text-left transition hover:border-indigo-500 hover:bg-gray-800/50 ${
+              className={`cursor-pointer rounded-xl border p-5 text-left transition hover:border-accent-hover hover:bg-elevated/50 ${
                 selectedId === project.id
-                  ? "border-indigo-500 bg-gray-800/60 ring-1 ring-indigo-500/40"
-                  : "border-gray-700 bg-gray-900"
+                  ? "border-accent-hover bg-elevated/60 ring-1 ring-accent-hover/40"
+                  : "border-border bg-surface"
               }`}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="font-semibold text-white">{project.name}</h2>
+                <h2 className="font-semibold text-heading">{project.name}</h2>
                 <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[project.status]}`}>
                   {project.status}
                 </span>
               </div>
-              <p className="text-sm text-gray-400">{project.description}</p>
+              <p className="text-sm text-subtle">{project.description}</p>
             </button>
           ))}
         </div>

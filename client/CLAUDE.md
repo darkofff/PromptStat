@@ -23,57 +23,47 @@
 - Custom hooks go in `src/hooks/`
 - API functions go in `src/api/`
 
-## Color Palette
+## Design Tokens (Color Palette)
 
-Dark theme. Use only these colors for consistency:
+Dark theme. All colors are defined as semantic tokens via `@theme` in `src/index.css`. Use token class names (e.g. `bg-base`, `text-body`) — never hardcode gray/indigo/red values.
 
-### Base / Neutrals (gray)
+### Neutrals (60%)
 
-| Token      | Usage                                      |
-|------------|--------------------------------------------|
-| gray-950   | Page backgrounds, navbar background        |
-| gray-900   | Card/input backgrounds                     |
-| gray-800   | Response card backgrounds, borders, hover  |
-| gray-700   | Default borders                            |
-| gray-500   | Placeholder text, muted icons              |
-| gray-400   | Secondary text, labels                     |
-| gray-300   | Nav link text                              |
-| gray-200   | Hover text (subtle elements)               |
-| gray-100   | Primary body text                          |
-| white      | Headings, emphasized text, button labels   |
+| Token       | Hex       | Tailwind class   | Usage                                  |
+|-------------|-----------|------------------|----------------------------------------|
+| `base`      | `#030712` | `bg-base`        | Page backgrounds, navbar, prompt area  |
+| `surface`   | `#111827` | `bg-surface`     | Cards, inputs, table rows              |
+| `elevated`  | `#1f2937` | `bg-elevated`    | Hover, table headers, elevated surfaces|
+| `border`    | `#374151` | `border-border`  | All borders, dividers, scrollbar thumb |
+| `muted`     | `#6b7280` | `text-muted`     | Placeholder, disabled, scrollbar hover |
+| `subtle`    | `#9ca3af` | `text-subtle`    | Secondary text, labels, nav links      |
+| `body`      | `#f3f4f6` | `text-body`      | Primary body text                      |
+| `heading`   | `#ffffff` | `text-heading`   | Headings, button labels, emphasis      |
 
-### Accent (indigo)
+### Accent (30%)
 
-| Token      | Usage                                  |
-|------------|----------------------------------------|
-| indigo-600 | Primary button background              |
-| indigo-500 | Button hover, focus rings, active borders |
+| Token          | Hex       | Tailwind class        | Usage                                |
+|----------------|-----------|-----------------------|--------------------------------------|
+| `accent`       | `#4f46e5` | `bg-accent`           | Primary button background            |
+| `accent-hover` | `#6366f1` | `hover:bg-accent-hover` | Hover, focus rings, active borders |
 
-### Semantic — Error (red)
+### Semantic (10%)
 
-| Token      | Usage                        |
-|------------|------------------------------|
-| red-950    | Error card background        |
-| red-800    | Error card border            |
-| red-400    | Error text                   |
-| red-300    | Error hover text             |
-
-### Semantic — Status badges
-
-| Status    | Background       | Text         |
-|-----------|------------------|--------------|
-| Active    | green-900/50     | green-400    |
-| Completed | blue-900/50      | blue-400     |
-| Paused    | yellow-900/50    | yellow-400   |
+| Token     | Hex       | Tailwind class  | Usage                          |
+|-----------|-----------|-----------------|--------------------------------|
+| `error`   | `#f87171` | `text-error`    | Error text, borders, badges    |
+| `success` | `#4ade80` | `text-success`  | Active status                  |
+| `warning` | `#facc15` | `text-warning`  | Paused status                  |
+| `info`    | `#60a5fa` | `text-info`     | Completed status               |
 
 ### Opacity modifiers
 
-- `/40` — focus rings (e.g. `ring-indigo-500/40`)
-- `/50` — subtle backgrounds (e.g. `bg-gray-800/50`, status badges)
-- `/60` — selected state backgrounds (e.g. `bg-gray-800/60`)
+- `/10` — semantic badge & error card backgrounds (e.g. `bg-error/10`, `bg-success/10`)
+- `/30` — semantic borders (e.g. `border-error/30`)
+- `/40` — focus rings (e.g. `ring-accent-hover/40`)
+- `/50` — subtle hover backgrounds (e.g. `bg-elevated/50`)
+- `/60` — selected state backgrounds (e.g. `bg-elevated/60`)
 
-### Scrollbar (CSS custom properties in `index.css`)
+### Scrollbar
 
-- Thumb: `#4b5563` (gray-600 equivalent)
-- Thumb hover: `#6b7280` (gray-500 equivalent)
-- Track: transparent
+Defined via CSS custom properties in `src/index.css` using `var(--color-border)` and `var(--color-muted)`.

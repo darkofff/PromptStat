@@ -36,7 +36,7 @@ function Home() {
   }
 
   return (
-    <div className="flex overflow-y-hidden h-full flex-col bg-gray-950 text-gray-100 ">
+    <div className="flex overflow-y-hidden h-full flex-col bg-base text-body ">
       {csv && (
         <div className="mx-auto w-full max-w-4xl px-4 py-4">
           <CsvTable
@@ -55,7 +55,7 @@ function Home() {
             <>
               <label
                 htmlFor="csv-upload"
-                className="cursor-pointer rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs text-gray-400 transition hover:border-gray-500 hover:text-gray-200">
+                className="cursor-pointer rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-subtle transition hover:border-muted hover:text-body">
                 Attach CSV
               </label>
               <input
