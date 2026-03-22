@@ -1,20 +1,21 @@
-// Router
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// Components
 import MainLayout from "./layouts/MainLayout";
-import Home from "./pages/Home";
+import Dataset from "./pages/Dataset";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
-import Hello from "./pages/Hello";
 import Projects from "./pages/Projects";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Projects />} />
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Projects />} />
-          <Route path="/Home" element={<Home />} />
-          <Route path="/hello" element={<Hello />} />
+          <Route path="/project/:projectName" element={<Dataset />} />
+          <Route
+            path="/project/:projectName/chat/:chatId"
+            element={<Chat />}
+          />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -1,24 +1,123 @@
-import { Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { unslugify } from "../utils/slugify";
+import { fetchChats, createChat } from "../api/chats";
 
 function Navbar() {
+  const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { projectName, chatId } = useParams();
+  const displayName = projectName ? unslugify(projectName) : null;
+
+  const isDatasetActive = projectName && !chatId;
+  const isChatActive = !!chatId;
+
+  const { data: chats = [] } = useQuery({
+    queryKey: ["chats", projectName],
+    queryFn: () => fetchChats(projectName),
+    enabled: !!projectName,
+  });
+
+  const { mutate: newChat } = useMutation({
+    mutationFn: () => createChat(projectName),
+    onSuccess: (chat) => {
+      queryClient.invalidateQueries({ queryKey: ["chats", projectName] });
+      navigate(`/project/${projectName}/chat/${chat.id}`);
+    },
+  });
+
+  function handleChatClick() {
+    if (chats.length === 0) {
+      newChat();
+    } else {
+      navigate(`/project/${projectName}/chat/${chats[0].id}`);
+    }
+  }
+
   return (
-    <nav className="border-b border-border bg-base px-6 py-3 flex gap-3">
-      <Link
-        to="/"
-        className="text-sm font-medium text-subtle transition hover:text-heading">
-        Projects
-      </Link>
-      <Link
-        to="/Home"
-        className="text-sm font-medium text-subtle transition hover:text-heading">
-        Home
-      </Link>
-      <Link
-        to="/hello"
-        className="text-sm font-medium text-subtle transition hover:text-heading">
-        Hello
-      </Link>
-    </nav>
+    <aside
+      className={`flex h-full flex-col border-r border-border bg-base transition-all duration-200 ${
+        open ? "w-48" : "w-12"
+      }`}>
+      {displayName && open && (
+        <div className="border-b border-border px-3 py-3">
+          <h1 className="truncate text-sm font-semibold text-heading">
+            {displayName}
+          </h1>
+        </div>
+      )}
+      <div className="flex items-center justify-between px-3 py-3">
+        {open && (
+          <button
+            onClick={() => navigate("/")}
+            className="cursor-pointer text-sm text-subtle transition hover:text-heading">
+            &larr; Projects
+          </button>
+        )}
+        <button
+          onClick={() => setOpen(!open)}
+          className="cursor-pointer text-lg text-subtle transition hover:text-heading">
+          {open ? "\u2039" : "\u203A"}
+        </button>
+      </div>
+
+      {projectName && (
+        <nav className="flex flex-1 flex-col gap-1 overflow-hidden px-2">
+          <button
+            onClick={() => navigate(`/project/${projectName}`)}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer ${
+              isDatasetActive
+                ? "bg-elevated/60 text-heading"
+                : "text-subtle hover:bg-elevated hover:text-heading"
+            } ${!open ? "text-center" : ""}`}>
+            {open ? "Dataset" : "D"}
+          </button>
+
+          {open ? (
+            <div className="flex items-center justify-between px-3 pt-3 pb-1">
+              <span className="text-xs font-medium text-muted">Chat</span>
+              <button
+                onClick={() => newChat()}
+                className="cursor-pointer text-sm text-subtle transition hover:text-heading"
+                title="New chat">
+                +
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleChatClick}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer ${
+                isChatActive
+                  ? "bg-elevated/60 text-heading"
+                  : "text-subtle hover:bg-elevated hover:text-heading"
+              } text-center`}>
+              C
+            </button>
+          )}
+
+          {open && (
+            <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto custom-scrollbar">
+              {chats.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() =>
+                    navigate(`/project/${projectName}/chat/${chat.id}`)
+                  }
+                  className={`truncate rounded-lg px-3 py-1.5 text-left text-sm transition cursor-pointer ${
+                    chatId === chat.id
+                      ? "bg-elevated/60 text-heading"
+                      : "text-subtle hover:bg-elevated hover:text-heading"
+                  }`}>
+                  {chat.title}
+                </button>
+              ))}
+            </div>
+          )}
+        </nav>
+      )}
+    </aside>
   );
 }
 
