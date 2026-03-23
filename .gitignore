@@ -33,6 +33,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Database
+data/
+
 # Claude
-.claude/ 
+.claude/
 

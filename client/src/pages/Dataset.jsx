@@ -21,13 +21,10 @@ function Dataset() {
     setCsv(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
-  /*  flex  flex-col items-center justify-center*/
   return (
-    <div
-      className=" h-full bg-base text-body border-2
-    border-amber-400">
+    <div className="custom-scrollbar h-full bg-base text-body border-2 flex justify-center border-amber-400 overflow-y-scroll">
       {csv ? (
-        <div className="w-full max-w-4xl px-4 py-4 ">
+        <div className="w-full  px-4 py-4 ">
           <CsvTable
             headers={csv.headers}
             rows={csv.rows}
