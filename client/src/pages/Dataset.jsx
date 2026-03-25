@@ -33,7 +33,7 @@ function Dataset() {
           />
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4 ">
+        <div className="flex flex-col items-center gap-4 translate-y-1/2 ">
           <p className="text-sm text-subtle">No dataset attached yet.</p>
           <label
             htmlFor="csv-upload"
