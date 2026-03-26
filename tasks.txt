@@ -1,0 +1,20 @@
+=== TODOS LATER===
+
+1.  Zrobić refactor strony Projects.jsx
+2. Zrobić ładne API - rozbić na osobne pliki. 
+    - jest trochę konfiguracji więc na kiedy indziej
+3.  
+
+=== TODOS now ===
+
+1. Dodać remove dataset
+2.
+
+=====================
+===  FRONTEND ===
+===================== 
+
+main.jsx        - ok
+App.jsx         - ok
+--- Pages ---
+Projects.jsx    - custom hook dla pobierania, rozbić na komponenty

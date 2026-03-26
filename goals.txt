@@ -1,0 +1,26 @@
+- Mechanizm działania aplikacji:
+    1. Dodaje sie dataset
+    2. Przyznawana jest mu nazwa (może być wiele datasetów)
+    3. Użytkownik odpytuje o ten dataset przez prompty
+    4. Serwer zwraca odpowiedź oraz dataset w formie wizualnej - dataframe
+    5. Każdy dataframe dostaje swoją nazwę (z automatu), ale użytkownik może ją nadpisać
+    6. Użytkownik może zapisać otrzymany dataframe do zakładki dataset
+    7. Wtedy jest on dostępny w każdym chacie
+        -   zapisany dataframe nazywa się zmienną
+    8. Do zmiennych można nawiązać w chacie poprzez @nazwa_zmiennej
+        -   przyda się mechanizm do proponowania nazw, z których użytkownik może wybrać właściwy
+    9. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
