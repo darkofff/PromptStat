@@ -5,7 +5,7 @@ function MainLayout() {
   return (
     <div className="h-dvh flex flex-row">
       <Navbar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="w-full overflow-hidden">
         <Outlet />
       </div>
     </div>

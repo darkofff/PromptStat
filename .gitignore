@@ -39,3 +39,7 @@ data/
 # Claude
 .claude/
 
+# Other
+goals.txt
+tasks.txt
+changes.md 

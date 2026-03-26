@@ -1,30 +1,65 @@
-import { useRef, useState } from "react";
-import { parseCsv } from "../utils/handle_csv";
+import { useRef } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchProjects } from "../api/projects";
+import { fetchDatasets, uploadDataset } from "../api/datasets";
 import CsvTable from "../components/CsvTable";
+import { slugify } from "../utils/slugify";
 
 function Dataset() {
-  const [csv, setCsv] = useState(null);
   const fileInputRef = useRef(null);
+  const { projectName } = useParams();
+  const queryClient = useQueryClient();
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects"],
+    queryFn: fetchProjects,
+  });
+  const project = projects.find((p) => slugify(p.title) === projectName);
+
+  const { data: datasets = [], isLoading } = useQuery({
+    queryKey: ["datasets", project?.id],
+    queryFn: () => fetchDatasets(project.id),
+    enabled: !!project,
+  });
+  const dataset = datasets[0] ?? null;
+
+  const { mutate: upload, isPending } = useMutation({
+    mutationFn: (file) => uploadDataset(project.id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["datasets", project?.id] });
+    },
+  });
 
   function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const { headers, rows } = parseCsv(ev.target.result);
-      setCsv({ fileName: file.name, headers, rows });
-    };
-    reader.readAsText(file);
+    upload(file);
   }
 
   function handleRemoveCsv() {
-    setCsv(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
+
+  // Dataset z bazy — parsujemy JSON z pola data na headers + rows
+  const csv = dataset?.data ? (() => {
+    const rows = JSON.parse(dataset.data);
+    const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+    return { fileName: dataset.name, headers, rows: rows.map(Object.values) };
+  })() : null;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center bg-base text-subtle">
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div className="custom-scrollbar h-full bg-base text-body border-2 flex justify-center border-amber-400 overflow-y-scroll">
+    <div className="custom-scrollbar h-full overflow-y-auto bg-base text-body ">
       {csv ? (
-        <div className="w-full  px-4 py-4 ">
+        <div className="h-full px-4 py-4 ">
           <CsvTable
             headers={csv.headers}
             rows={csv.rows}
@@ -34,7 +69,9 @@ function Dataset() {
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4 translate-y-1/2 ">
-          <p className="text-sm text-subtle">No dataset attached yet.</p>
+          <p className="text-sm text-subtle">
+            {isPending ? "Uploading..." : "No dataset attached yet."}
+          </p>
           <label
             htmlFor="csv-upload"
             className="cursor-pointer rounded-lg border border-border bg-surface px-4 py-2 text-sm text-subtle transition hover:border-muted hover:text-body">
