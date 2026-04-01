@@ -23,6 +23,7 @@ export function useManageChat() {
         ...prev,
         newExchange,
       ]);
+      setPrompt("");
     },
   });
 

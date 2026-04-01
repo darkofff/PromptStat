@@ -1,6 +1,7 @@
 import { useManageChat } from "../hooks/useManageChat";
 import PromptInput from "../components/PromptInput";
 import ChatHistory from "../components/ChatHistory";
+import Spinner from "../components/Spinner";
 
 function Chat() {
   const {
@@ -15,9 +16,7 @@ function Chat() {
   return (
     <div className="flex h-full flex-col bg-base text-body">
       {exchangesLoading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-accent" />
-        </div>
+        <Spinner />
       ) : (
         <ChatHistory exchanges={exchanges} />
       )}

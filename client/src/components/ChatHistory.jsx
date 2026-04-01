@@ -1,7 +1,6 @@
 import ChatMessage from "./ChatMessage";
 
 function ChatHistory({ exchanges }) {
-  console.log(exchanges);
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
       <div className="mx-auto max-w-4xl space-y-6">
