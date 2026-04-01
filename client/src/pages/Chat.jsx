@@ -1,16 +1,29 @@
-import { useAskPrompt } from "../hooks/useAskPrompt";
-import ChatHistory from "../components/ChatHistory";
+import { useManageChat } from "../hooks/useManageChat";
 import PromptInput from "../components/PromptInput";
+import ChatHistory from "../components/ChatHistory";
 
 function Chat() {
-  const { text, setText, history, loading, handleSubmit } = useAskPrompt();
+  const {
+    prompt,
+    setPrompt,
+    loading,
+    handleSubmit,
+    exchanges,
+    exchangesLoading,
+  } = useManageChat();
 
   return (
     <div className="flex h-full flex-col bg-base text-body">
-      <ChatHistory history={history} />
+      {exchangesLoading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-accent" />
+        </div>
+      ) : (
+        <ChatHistory exchanges={exchanges} />
+      )}
       <PromptInput
-        text={text}
-        setText={setText}
+        text={prompt}
+        setText={setPrompt}
         loading={loading}
         onSubmit={handleSubmit}
       />

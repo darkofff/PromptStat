@@ -1,30 +1,41 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { unslugify } from "../utils/slugify";
 import { fetchChats, createChat } from "../api/chats";
+import { fetchProjects } from "../api/projects";
 
 function Navbar() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { projectName, chatId } = useParams();
-  const displayName = projectName ? unslugify(projectName) : null;
+  const { projectId, chatId } = useParams();
 
-  const isDatasetActive = projectName && !chatId;
+  const isDatasetActive = projectId && !chatId;
   const isChatActive = !!chatId;
 
+  // Pobierz tytuł projektu z cache lub z API
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects"],
+    queryFn: fetchProjects,
+    enabled: !!projectId,
+  });
+  const project = projects.find((p) => p.id === Number(projectId));
+  const displayName = project?.title ?? null;
+
   const { data: chats = [] } = useQuery({
-    queryKey: ["chats", projectName],
-    queryFn: () => fetchChats(projectName),
-    enabled: !!projectName,
+    queryKey: ["chats", projectId],
+    queryFn: () => fetchChats(projectId),
+    enabled: !!projectId,
   });
 
   const { mutate: newChat } = useMutation({
-    mutationFn: () => createChat(projectName),
+    mutationFn: () => {
+      const title = `Chat ${chats.length + 1}`;
+      return createChat(projectId, title);
+    },
     onSuccess: (chat) => {
-      queryClient.invalidateQueries({ queryKey: ["chats", projectName] });
-      navigate(`/project/${projectName}/chat/${chat.id}`);
+      queryClient.invalidateQueries({ queryKey: ["chats", projectId] });
+      navigate(`/project/${projectId}/chat/${chat.id}`);
     },
   });
 
@@ -32,7 +43,7 @@ function Navbar() {
     if (chats.length === 0) {
       newChat();
     } else {
-      navigate(`/project/${projectName}/chat/${chats[0].id}`);
+      navigate(`/project/${projectId}/chat/${chats[0].id}`);
     }
   }
 
@@ -63,10 +74,10 @@ function Navbar() {
         </button>
       </div>
 
-      {projectName && (
+      {projectId && (
         <nav className="flex flex-1 flex-col gap-1 overflow-hidden px-2">
           <button
-            onClick={() => navigate(`/project/${projectName}`)}
+            onClick={() => navigate(`/project/${projectId}`)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer ${
               isDatasetActive
                 ? "bg-elevated/60 text-heading"
@@ -103,10 +114,10 @@ function Navbar() {
                 <button
                   key={chat.id}
                   onClick={() =>
-                    navigate(`/project/${projectName}/chat/${chat.id}`)
+                    navigate(`/project/${projectId}/chat/${chat.id}`)
                   }
                   className={`truncate rounded-lg px-3 py-1.5 text-left text-sm transition cursor-pointer ${
-                    chatId === chat.id
+                    chatId === String(chat.id)
                       ? "bg-elevated/60 text-heading"
                       : "text-subtle hover:bg-elevated hover:text-heading"
                   }`}>

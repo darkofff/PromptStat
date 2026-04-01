@@ -11,9 +11,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Projects />} />
         <Route element={<MainLayout />}>
-          <Route path="/project/:projectName" element={<Dataset />} />
+          <Route path="/project/:projectId" element={<Dataset />} />
           <Route
-            path="/project/:projectName/chat/:chatId"
+            path="/project/:projectId/chat/:chatId"
             element={<Chat />}
           />
           <Route path="*" element={<NotFound />} />

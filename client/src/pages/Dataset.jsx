@@ -1,33 +1,33 @@
 import { useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProjects } from "../api/projects";
-import { fetchDatasets, uploadDataset } from "../api/datasets";
+import { fetchDatasets, uploadDataset, deleteDataset } from "../api/datasets";
 import CsvTable from "../components/CsvTable";
-import { slugify } from "../utils/slugify";
 
 function Dataset() {
   const fileInputRef = useRef(null);
-  const { projectName } = useParams();
+  const { projectId } = useParams();
   const queryClient = useQueryClient();
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects"],
-    queryFn: fetchProjects,
-  });
-  const project = projects.find((p) => slugify(p.title) === projectName);
-
   const { data: datasets = [], isLoading } = useQuery({
-    queryKey: ["datasets", project?.id],
-    queryFn: () => fetchDatasets(project.id),
-    enabled: !!project,
+    queryKey: ["datasets", projectId],
+    queryFn: () => fetchDatasets(projectId),
+    enabled: !!projectId,
   });
   const dataset = datasets[0] ?? null;
 
   const { mutate: upload, isPending } = useMutation({
-    mutationFn: (file) => uploadDataset(project.id, file),
+    mutationFn: (file) => uploadDataset(projectId, file),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["datasets", project?.id] });
+      queryClient.invalidateQueries({ queryKey: ["datasets", projectId] });
+    },
+  });
+
+  const { mutate: remove } = useMutation({
+    mutationFn: (datasetId) => deleteDataset(datasetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["datasets", projectId] });
+      if (fileInputRef.current) fileInputRef.current.value = "";
     },
   });
 
@@ -38,7 +38,9 @@ function Dataset() {
   }
 
   function handleRemoveCsv() {
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (dataset) {
+      remove(dataset.id);
+    }
   }
 
   // Dataset z bazy — parsujemy JSON z pola data na headers + rows

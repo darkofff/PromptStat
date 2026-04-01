@@ -24,8 +24,8 @@ class Project(Base):
         )
 
     # Relacje
-    chats: Mapped[List["Chat"]] = relationship(back_populates="project")
-    datasets: Mapped[List["Dataset"]] = relationship(back_populates="project")
+    chats: Mapped[List["Chat"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    datasets: Mapped[List["Dataset"]] = relationship(back_populates="project", cascade="all, delete-orphan")
 
 class Chat(Base):
     __tablename__ = "chats"
@@ -36,7 +36,7 @@ class Chat(Base):
 
     # Relacje
     project: Mapped["Project"] = relationship(back_populates="chats")
-    exchanges: Mapped[List["Exchange"]] = relationship(back_populates="chat")
+    exchanges: Mapped[List["Exchange"]] = relationship(back_populates="chat", cascade="all, delete-orphan")
 
 class Dataset(Base):
     __tablename__ = "datasets"
@@ -55,10 +55,9 @@ class Exchange(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True) # Dodałem PK, bo każda tabela go potrzebuje
     chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"))
-    order: Mapped[int] = mapped_column(Integer)
+    order: Mapped[int] = mapped_column(Integer, autoincrement=True) # autoincrement nie dział
     prompt: Mapped[str] = mapped_column(Text)
     response: Mapped[str] = mapped_column(Text)
-    dataframe: Mapped[Optional[str]] = mapped_column(Text) # Przechowywane jako JSON string
 
     # Relacje
     chat: Mapped["Chat"] = relationship(back_populates="exchanges")

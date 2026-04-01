@@ -4,42 +4,27 @@ import csv
 import io
 import json
 from fastapi.middleware.cors import CORSMiddleware
-# db sertup
+# db setup
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-from database import engine, SessionLocal, get_db, Base
+from database import engine, get_db, Base
 import schemas
 import crud
 #AI
 from langchain_google_genai import ChatGoogleGenerativeAI
-# do usunięcia/zmiany/przeniesienia - prawdopodobnie
 from contextlib import asynccontextmanager
-from models import Project
-from pydantic import BaseModel
-
+import time
 load_dotenv()
 
-# Seed data — mirrors the frontend's original mock projects
-SEED_PROJECTS = [
-    {"title": "Customer Churn Analysis", "description": "Predict customer churn using transaction history"},
-    {"title": "Sales Forecasting", "description": "Quarterly revenue predictions based on pipeline data"},
-    {"title": "Sentiment Analysis", "description": "NLP model for product review classification"},
-    {"title": "Fraud Detection", "description": "Real-time anomaly detection on payment transactions"},
-    {"title": "Inventory Optimization", "description": "Demand forecasting for warehouse stock levels"},
-    {"title": "User Segmentation", "description": "Cluster users by behavior for targeted campaigns"},
-]
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+# Jedna instancja LLM na poziomie modułu
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create tables and seed initial project data if empty."""
+    """Create tables on startup."""
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        if db.query(Project).count() == 0:
-            for p in SEED_PROJECTS:
-                db.add(Project(**p))
-            db.commit()
-    finally:
-        db.close()
     yield
 
 
@@ -51,15 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class AskRequest(BaseModel):
-    text: str
 
-""" LLM """
-@app.post("/ask")
-def ask(request: AskRequest):
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
-    response = llm.invoke(request.text)
-    return {"message": "Message received", "text": response.content}
 
 """ PROJECTS """
 @app.get("/projects", response_model=list[schemas.ProjectRead])
@@ -107,7 +84,15 @@ async def add_dataset(project_id: int, file: UploadFile, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="Project not found")
     if not file.filename:
         raise HTTPException(status_code=400, detail="File has no filename")
-    content = (await file.read()).decode()
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are accepted")
+    raw = await file.read()
+    if len(raw) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large (max 10MB)")
+    try:
+        content = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File is not valid UTF-8")
     reader = csv.DictReader(io.StringIO(content))
     rows = list(reader)
     data_json = json.dumps(rows)
@@ -123,3 +108,70 @@ def get_datasets(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return crud.get_datasets(db, project_id)
+
+@app.delete("/datasets/{dataset_id}")
+def delete_dataset(dataset_id: int, db: Session = Depends(get_db)):
+    """Delete a dataset by id."""
+    dataset = crud.get_dataset(db, dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    crud.delete_dataset(db, dataset)
+    return {"detail": "Dataset deleted"}
+
+
+""" CHATS """
+@app.post("/projects/{project_id}/chats", response_model=schemas.ChatRead)
+def create_chat(project_id: int, chat: schemas.ChatBase, db: Session = Depends(get_db)):
+    """Create a new chat for a project."""
+    project = crud.get_project(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return crud.add_chat(db, project_id, chat.title)
+
+@app.get("/projects/{project_id}/chats", response_model=list[schemas.ChatRead])
+def list_chats(project_id: int, db: Session = Depends(get_db)):
+    """Return all chats for a given project."""
+    project = crud.get_project(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return crud.get_chats(db, project_id)
+
+@app.get("/chats/{chat_id}", response_model=schemas.ChatRead)
+def get_chat(chat_id: int, db: Session = Depends(get_db)):
+    """Return a single chat by id."""
+    chat = crud.get_chat(db, chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat
+
+
+""" EXCHANGES """
+
+@app.get("/chats/{chat_id}/exchanges", response_model=list[schemas.ExchangeRead])
+def list_exchanges(chat_id: int, db: Session = Depends(get_db)):
+
+    time.sleep(2)
+
+    """Return all exchanges for a given chat."""
+    chat = crud.get_chat(db, chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return crud.get_exchanges(db, chat_id)
+    
+
+@app.post("/chats/{chat_id}/exchanges", response_model=schemas.ExchangeRead) 
+def create_exchange(chat_id: int, exchange: schemas.ExchangeBase, db: Session = Depends(get_db)):
+    """ Add new exchange for a given chat """
+    chat = crud.get_chat(db, chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    try:
+        response = llm.invoke(exchange.prompt)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM error: {str(e)}")
+    order = crud.get_exchanges_count(db, chat_id) + 1
+    return crud.add_exchange(db, chat_id, order=order, prompt=exchange.prompt, response=str(response.content) )
+     
+
+
+
