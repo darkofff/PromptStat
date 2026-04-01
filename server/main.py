@@ -149,9 +149,6 @@ def get_chat(chat_id: int, db: Session = Depends(get_db)):
 
 @app.get("/chats/{chat_id}/exchanges", response_model=list[schemas.ExchangeRead])
 def list_exchanges(chat_id: int, db: Session = Depends(get_db)):
-
-    time.sleep(2)
-
     """Return all exchanges for a given chat."""
     chat = crud.get_chat(db, chat_id)
     if not chat:
